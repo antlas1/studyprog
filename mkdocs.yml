@@ -1,0 +1,44 @@
+site_name: Курс "Мышление программиста"
+
+
+theme:
+  name: 'material'
+  language: 'ru'
+  
+extra:
+  search:
+    language: 'en, ru'
+  
+nav:
+    - Главная: index.md
+    - Курс:
+        - 1. Основы алгоритмизации и программирования:
+            - 1.1. Технология программирования: course/p1/t1.md
+    - Технические статьи:
+        - Шпаргалка по Markdown: tech/cheatsheet.md
+        - Выкладывание на Github pages: tech/deploy.md
+
+markdown_extensions:
+    - tables
+    - admonition
+    - attr_list
+    - pymdownx.details
+    - pymdownx.emoji
+    - pymdownx.mark
+    - pymdownx.caret
+    - pymdownx.arithmatex:
+        generic: true
+    - pymdownx.superfences:
+        custom_fences:
+           - name: mermaid
+             class: mermaid
+             format: !!python/name:pymdownx.superfences.fence_div_format
+             
+extra_css:
+  - mermaid/mermaid.css
+  - katex/katex.min.css
+extra_javascript:
+  - mermaid/mermaid.min.js
+  - katex/mkdocs_load.js
+  - katex/katex.min.js
+    
