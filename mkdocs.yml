@@ -21,6 +21,8 @@ nav:
         - Шпаргалка по Markdown: tech/cheatsheet.md
         - Выкладывание на Github pages: tech/deploy.md
         - Семантический конспект: tech/semantic.md
+        - Процедурная модель: tech/procedural.md
+        - Модель умений: tech/skills.md
 
 markdown_extensions:
     - tables
