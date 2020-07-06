@@ -5,9 +5,10 @@ theme:
   name: 'material'
   language: 'ru'
   
-extra:
-  search:
-    language: 'en, ru'
+plugins: []
+#extra:
+#  search:
+#    language: 'en, ru'
   
 nav:
     - Главная: index.md
@@ -17,6 +18,8 @@ nav:
             - 1.1. Алгоритм и блок-схема: course/p1/t1.md
             - 1.2. Переменные и константы: course/p1/t2.md
             - 1.2. Основные операции с переменными: course/p1/t3.md
+    - Задачи:
+        - Тест: tasks/exam.md
     - Технические статьи:
         - Шпаргалка по Markdown: tech/cheatsheet.md
         - Выкладывание на Github pages: tech/deploy.md

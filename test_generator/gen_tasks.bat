@@ -1,0 +1,1 @@
+python generator.py -i exams -o ../docs/tasks -w wrapper_mkdocs.html -e md

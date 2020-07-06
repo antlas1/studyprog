@@ -2,12 +2,6 @@
 Es una herramienta para generar exámenes a partir de un archivo Markdown. Esto significa
 que puedes estructurar el formato que tendrá el texto, negrita, cursiva, tablas, etc.
 
-Markdown<br>
-![p1](https://raw.githubusercontent.com/wlisesrivas/markdown-test-generator/development/app/static/sample-md.png)
-
-Examen generado<br>
-![p2](https://raw.githubusercontent.com/wlisesrivas/markdown-test-generator/development/app/static/sample-animation.gif)
-
 ### Requerimientos
 [Python-3.7.x](https://www.python.org/downloads/release/python-374/)
 Asegúrate de instalar **pip** al instalar python.

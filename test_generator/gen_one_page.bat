@@ -1,0 +1,1 @@
+python generator.py -i exams -o ../site -w wrapper.html -e html

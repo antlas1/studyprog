@@ -1,4 +1,77 @@
-$(function(){
+<link href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet">
+<style>
+    body {
+        font-family: sans-serif;
+    }
+    code, pre {
+        font-family: monospace;
+    }
+    h1 code,
+    h2 code,
+    h3 code,
+    h4 code,
+    h5 code,
+    h6 code {
+        font-size: inherit;
+    }
+    ul li {
+        list-style-type: none;
+    }
+    table {
+    @extend .table;
+    }
+</style>
+<script src="https://code.jquery.com/jquery-3.4.1.min.js"
+        integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo="
+        crossorigin="anonymous"></script>
+
+<div class="container">
+    <div class="form-row">
+        <div class="container">
+            <h1>Пример вопросов</h1>
+<hr>
+<ol>
+<li>
+<p>Вид булевой переменной, принимающей значение 1:</p>
+<ul class="radio-list">
+<li><label><input type="radio" data-question="0" data-content="1" data-link="" /> Истина</label></li>
+<li><label><input type="radio" data-question="1" data-content="0" data-link="" /> Ложь</label></li>
+</ul>
+</li>
+<li>
+<p>Какие перемеменные при <strong>суммировании</strong> дают истину?</p>
+<ul class="radio-list">
+<li><label><input type="radio" data-question="0" data-content="1" data-link="" /> Истина И Истина</label></li>
+<li><label><input type="radio" data-question="1" data-content="0" data-link="" /> Ложь И Истина</label></li>
+<li><label><input type="radio" data-question="1" data-content="0" data-link="" /> Ложь И Ложь</label></li>
+</ul>
+</li>
+<li>
+<p>Примеры констант:</p>
+<ul class="checklist">
+<li><label><input type="checkbox" data-question="1" data-content="0" data-link="" /> Человек</label></li>
+<li><label><input type="checkbox" data-question="0" data-content="1" data-link="" /> 4.7</label></li>
+<li><label><input type="checkbox" data-question="0" data-content="1" data-link="" /> Pi (3.1415...)</label></li>
+</ul>
+</li>
+<li>
+<p>Как называется имя переменной?</p>
+<ul class="textbox">
+<li><input type="text" data-content="ротакифитнеди" data-question="рsоsтsаsкsиsфsиsтsнsеsдsиs" data-link="" placeholder="Введите корректный ответ" class="form-control" /><i class="text-correct text-muted"></i></li>
+</ul>
+</li>
+</ol>
+        </div>
+    </div>
+    <div id="tg-msg" class="alert" role="alert" style="display: none">
+        <span id="tg-correct-questions"></span> <b>Результат:<span id="tg-score"></span>%</b><br>
+        <span id="tg-diag">
+    </div>
+    <div class="row">
+        <button id="check-questions" class="btn btn-lg btn-success">Проверить</button>
+        <button id="reset-questions" class="btn btn-link">Заново</button>
+    </div>
+    <script type="text/javascript">$(function(){
     $('ul.radio-list,ul.checklist,ul.textbox').each(function(i, el){
         var questionClass = $(this).attr('class');
         $(this).parent().addClass('question-row').addClass(questionClass);
@@ -112,4 +185,5 @@ $(function(){
     $('#check-questions').on('click', checkQuestion);
     $('#reset-questions').on('click', resetQuestions);
 
-});
+});</script>
+</div>

@@ -56,12 +56,18 @@ class TextboxPostprocessor(Postprocessor):
 
 
 def render_item(caption: str, value):
-    # la respuesta correcta junto a otra falsa se guardan en
-    # un atributo como meta-data escritas al reves.
+    
+    captionAndLink = caption.split('#')
+    link = ""
+    if len(captionAndLink) == 2:
+       caption = captionAndLink[0]
+       link = captionAndLink[1]
+    
+    #правильный ответ рядом сложным сохраняются в перевернутом виде
     correct = caption.strip()[::-1]
     fake = "".join([c + 's' for c in correct])
     return f"<li>" \
-           f"<input type=\"text\" data-content=\"{correct}\" data-question=\"{fake}\" " \
+           f"<input type=\"text\" data-content=\"{correct}\" data-question=\"{fake}\" data-link=\"{link}\" " \
            f"placeholder=\"Введите корректный ответ\" class=\"form-control\" />" \
            f"<i class=\"text-correct text-muted\"></i>" \
            f"</li>"

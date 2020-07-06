@@ -57,7 +57,12 @@ class RadioPostprocessor(Postprocessor):
 def render_item(caption, checked):
     correct = "1" if checked else "0"
     fake = "0" if checked else "1"
+    captionAndLink = caption.split('#')
+    link = ""
+    if len(captionAndLink) == 2:
+       caption = captionAndLink[0]
+       link = captionAndLink[1]
 
     return f"<li>" \
-           f"<label><input type=\"radio\" data-question=\"{fake}\" data-content=\"{correct}\" />{caption}</label>" \
+           f"<label><input type=\"radio\" data-question=\"{fake}\" data-content=\"{correct}\" data-link=\"{link}\" />{caption}</label>" \
            f"</li>"
