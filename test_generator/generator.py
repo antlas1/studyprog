@@ -17,7 +17,7 @@ from jinja2 import Environment, PackageLoader, select_autoescape
 def render_test(file_name: str, markdown_content: str, out_dir: str, ext: str, wrapper: str) -> None:
     """Renderizar examen en formato Markdown a un HTML."""
 
-    extensions = ["tables", "app.extensions.checkbox", "app.extensions.radio", "app.extensions.textbox"]
+    extensions = ["tables", "app.extensions.checkbox", "app.extensions.radio", "app.extensions.textbox", "app.extensions.codebox"]
 
     html = markdown.markdown(markdown_content, extensions=extensions, output_format="html5")
     env = Environment(loader=PackageLoader('app', 'static'), autoescape=select_autoescape(['html', 'xml']))

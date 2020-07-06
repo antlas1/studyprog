@@ -8,15 +8,15 @@ from markdown.postprocessors import Postprocessor
 
 def makeExtension(configs=None):
     if configs is None:
-        return TextboxExtension()
+        return CodeboxExtension()
     else:
-        return TextboxExtension(configs=configs)
+        return CodeboxExtension(configs=configs)
 
-class TextboxExtension(Extension):
+class CodeboxExtension(Extension):
 
     def __init__(self, **kwargs):
         self.config = {
-            "list_class": ["textbox", "class name to add to the list element"],
+            "list_class": ["codebox", "class name to add to the list element"],
             "render_item": [render_item, "custom function to render items"]
         }
         super().__init__(**kwargs)
@@ -24,18 +24,17 @@ class TextboxExtension(Extension):
     def extendMarkdown(self, md, md_globals):
         list_class = self.getConfig("list_class")
         renderer = self.getConfig("render_item")
-        postprocessor = TextboxPostprocessor(list_class, renderer, md)
-        md.postprocessors.add("textbox", postprocessor, ">raw_html")
+        postprocessor = CodeboxPostprocessor(list_class, renderer, md)
+        md.postprocessors.add("codebox", postprocessor, ">raw_html")
 
 
-class TextboxPostprocessor(Postprocessor):
+class CodeboxPostprocessor(Postprocessor):
     """
     adds textbox class to list element
     """
 
-    # item_pattern = re.compile(r"^<li>\(([ Xx])\)(.*)</li>$", re.MULTILINE)
-    list_pattern = re.compile(r"(<ul>\n<li>[Rr]:=)")
-    item_pattern = re.compile(r"^<li>([Rr]:=)(.*)</li>$", re.MULTILINE)
+    list_pattern = re.compile(r"(<ul>\n<li>[Cc]:=)")
+    item_pattern = re.compile(r"^<li>([Cc]:=)(.*)</li>$", re.MULTILINE)
 
     def __init__(self, list_class, render_item, *args, **kwargs):
         self.list_class = list_class
@@ -61,10 +60,9 @@ def render_item(caption: str, value):
        caption = captionAndLink[0]
        link = captionAndLink[1]
     #правильный ответ рядом сложным сохраняются в перевернутом виде
-    correct = caption.strip()[::-1]
-    fake = "".join([c + 's' for c in correct])
+    correct = caption.strip()
     return f"<li>" \
-           f"<input type=\"text\" data-content=\"{correct}\" data-question=\"{fake}\" data-link=\"{link}\" " \
-           f"placeholder=\"Введите корректный ответ\" class=\"form-control\" />" \
-           f"<i class=\"text-correct text-muted\"></i>" \
+           f"<textarea type=\"text\" data-content=\"{correct}\" data-link=\"{link}\" " \
+           f"placeholder=\"Введите корректный ответ\" class=\"form-control\">" \
+           f"</textarea>" \
            f"</li>"

@@ -12,6 +12,26 @@ def makeExtension(configs=None):
     else:
         return RadioExtension(configs=configs)
 
+#class RadioPreprocessor(Preprocessor):
+#    """ Save line with links and clear from text """
+#    def __init__(self, md):
+#        super().__init__(md)
+#        self._facts = ''
+#        
+#    def run(self, lines):
+#        new_lines = []
+#        for line in lines:
+#            m = re.search("FACT", line)
+#            if not m:    
+#                # any line without NO RENDER is passed through
+#                new_lines.append(line) 
+#            else:
+#                self._facts = re.sub("FACT", "", line)
+#                print('radio preproc')
+#        return new_lines
+#        
+#    def facts(self):
+#        return self._facts
 
 class RadioExtension(Extension):
 
@@ -40,6 +60,7 @@ class RadioPostprocessor(Postprocessor):
     def __init__(self, list_class, render_item, *args, **kwargs):
         self.list_class = list_class
         self.render_item = render_item
+        self._links = None
         super().__init__(*args, **kwargs)
 
     def run(self, html):
@@ -51,18 +72,21 @@ class RadioPostprocessor(Postprocessor):
 
     def _convert_item(self, match):
         state, caption = match.groups()
-        return self.render_item(caption, state != " ")
+        return self.render_item(caption, state != " ", self)
 
 
-def render_item(caption, checked):
+def render_item(caption, checked, proc):
     correct = "1" if checked else "0"
     fake = "0" if checked else "1"
-    captionAndLink = caption.split('#')
+    
     link = ""
-    if len(captionAndLink) == 2:
-       caption = captionAndLink[0]
-       link = captionAndLink[1]
-
+    if caption.lstrip().startswith("#"):
+        proc._links = re.sub("#","",caption)
+        return ""
+    elif proc._links is not None:
+        link = proc._links
+        proc._links = None
+    
     return f"<li>" \
            f"<label><input type=\"radio\" data-question=\"{fake}\" data-content=\"{correct}\" data-link=\"{link}\" />{caption}</label>" \
            f"</li>"

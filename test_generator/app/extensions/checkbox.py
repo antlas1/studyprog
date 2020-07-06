@@ -12,7 +12,7 @@ def makeExtension(configs=None):
     else:
         return ChecklistExtension(configs=configs)
 
-
+        
 class ChecklistExtension(Extension):
 
     def __init__(self, **kwargs):
@@ -38,9 +38,10 @@ class ChecklistPostprocessor(Postprocessor):
     list_pattern = re.compile(r"(<ul>\n<li>\[[ Xx]\])")
     item_pattern = re.compile(r"^<li>\[([ Xx])\](.*)</li>$", re.MULTILINE)
 
-    def __init__(self, list_class, render_item, *args, **kwargs):
+    def __init__(self, list_class, render_item, preproc, *args, **kwargs):
         self.list_class = list_class
         self.render_item = render_item
+        self._links = None
         super().__init__(*args, **kwargs)
 
     def run(self, html):
@@ -52,17 +53,20 @@ class ChecklistPostprocessor(Postprocessor):
 
     def _convert_item(self, match):
         state, caption = match.groups()
-        return self.render_item(caption, state != " ")
+        return self.render_item(caption, state != " ", self)
 
 
-def render_item(caption, checked):
+def render_item(caption, checked, proc):
     correct = "1" if checked else "0"
     fake = "0" if checked else "1"
-    captionAndLink = caption.split('#')
+    
     link = ""
-    if len(captionAndLink) == 2:
-       caption = captionAndLink[0]
-       link = captionAndLink[1]
+    if caption.lstrip().startswith("#"):
+        proc._links = re.sub("#","",caption)
+        return ""
+    elif proc._links is not None:
+        link = proc._links
+        proc._links = None
 
     return f"<li>" \
            f"<label><input type=\"checkbox\" data-question=\"{fake}\" data-content=\"{correct}\" data-link=\"{link}\" />{caption}</label>" \

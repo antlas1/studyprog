@@ -50,4 +50,5 @@ extra_javascript:
   - mermaid/mermaid.min.js
   - katex/mkdocs_load.js
   - katex/katex.min.js
+  - tasks/acorn_interpreter.js
     
