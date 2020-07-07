@@ -39,6 +39,7 @@ class CodeboxPostprocessor(Postprocessor):
     def __init__(self, list_class, render_item, *args, **kwargs):
         self.list_class = list_class
         self.render_item = render_item
+        self._links = None
         super().__init__(*args, **kwargs)
 
     def run(self, html):
@@ -50,15 +51,22 @@ class CodeboxPostprocessor(Postprocessor):
 
     def _convert_item(self, match):
         state, caption = match.groups()
-        return self.render_item(caption, state != " ")
+        return self.render_item(caption, state != " ", self)
 
 
-def render_item(caption: str, value):    
+def render_item(caption: str, value, proc):    
     captionAndLink = caption.split('#')
+    #link = ""
+    #if len(captionAndLink) == 2:
+    #   caption = captionAndLink[0]
+    #   link = captionAndLink[1]
     link = ""
-    if len(captionAndLink) == 2:
-       caption = captionAndLink[0]
-       link = captionAndLink[1]
+    if caption.lstrip().startswith("#"):
+        proc._links = re.sub("#","",caption)
+        return ""
+    elif proc._links is not None:
+        link = proc._links
+        proc._links = None
     #правильный ответ рядом сложным сохраняются в перевернутом виде
     correct = caption.strip()
     return f"<li>" \

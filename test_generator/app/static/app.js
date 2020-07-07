@@ -116,46 +116,74 @@ $(function(){
        return result;
     }
 
+    function convertLinkToSets(link, setSema, setProc, setSkill) {
+       tag_array = link.trim().split(",");
+       for (let i = 0; i < tag_array.length; i++) {
+          var tag = tag_array[i].trim()
+          if (tag.length > 0) {
+            if (tag.charAt(0) == 'p') {
+               setProc.add(tag_array[i]);
+            } else if (tag.charAt(0) == 's') {
+               setSkill.add(tag_array[i]);
+            } else {
+               setSema.add(tag_array[i]);
+            }
+          }
+       }
+    }
+
     function checkQuestion() {
         resetQuestions(true);
         var questions = $('li.question-row');
         var total_questions = questions.length;
         var correct = 0;
-        var diagTable = '';
+        var corrSemaSet = new Set();
+        var corrProcSet = new Set();
+        var corrSkillSet = new Set();
+        
+        var failSemaSet = new Set();
+        var failProcSet = new Set();
+        var failSkillSet = new Set();
 
         questions.each(function(i, el) {
             var self = $(this);
             // Single Question.
             if (self.hasClass('radio-list')) {
+                var ok = false;
                 if (self.find('input[type="radio"][data-content="1"]:checked').length == 1) {
                     correct += 1;
+                    ok = true;
                 } else {
-                    var linkItems = self.find('input[type="radio"][data-link!=""]');
-                    linkItems.each(function(idx, li) {
-                        var link = $(li);
-                        diagTable += link.attr("data-link");
-                        //console.log( "Radio " + idx + ":" + link.attr("data-link") );
-                    });
                     self.addClass('text-danger');
                 }
+                
+                var linkItems = self.find('input[type="radio"][data-link!=""]');
+                linkItems.each(function(idx, li) {
+                    var link = $(li);
+                    if (ok) convertLinkToSets(link.attr("data-link"),corrSemaSet,corrProcSet,corrSkillSet);
+                    else convertLinkToSets(link.attr("data-link"),failSemaSet,failProcSet,failSkillSet);
+                });
+                
             }
             // Textbox Question.
             if(self.hasClass('textbox')) {
                 var textbox = self.find('input[type="text"]');
                 var correct_text = String(textbox.data("content")).trim().split("").reverse().join("");
+                var ok = false;
                 if(String(textbox.val()).trim().toLowerCase()==correct_text.toLowerCase()) {
                     correct += 1;
-                } else {
-                    var linkItems = self.find('input[type="text"][data-link!=""]');
-                    linkItems.each(function(idx, li) {
-                        var link = $(li);
-                        diagTable += link.attr("data-link");
-                        //console.log( "Textbox " + idx + ":" + link.attr("data-link") );
-                    });
-                    
+                    ok = true;
+                } else {                    
                     self.addClass('text-danger');
                     textbox.parent().find("i.text-correct").html(correct_text);
                 }
+                
+                var linkItems = self.find('input[type="text"][data-link!=""]');
+                linkItems.each(function(idx, li) {
+                    var link = $(li);
+                    if (ok) convertLinkToSets(link.attr("data-link"),corrSemaSet,corrProcSet,corrSkillSet);
+                    else convertLinkToSets(link.attr("data-link"),failSemaSet,failProcSet,failSkillSet);
+                });
             }
             // Multiple selection Questions.
             if(self.hasClass('checklist')) {
@@ -168,23 +196,21 @@ $(function(){
                     qc = 0;
                 }
                 correct += qc;
-                var displayLinks = false;
+                var ok = true;
                 if (qc == 0) {
                     self.addClass('text-danger');
-                    displayLinks = true;
+                    ok = false;
                 } else if (qc > 0 && qc < 1) {
                     self.addClass('text-warning');
-                    displayLinks = true;
+                    displayLinks = false;
                 }
                 
-                if (displayLinks){
-                   var linkItems = self.find('input[type="checkbox"][data-link!=""]');
-                   linkItems.each(function(idx, li) {
-                        var link = $(li);
-                        diagTable += link.attr("data-link");
-                        //console.log( "Checkbox " + idx + ":" + link.attr("data-link") );
-                   });
-                }
+                var linkItems = self.find('input[type="checkbox"][data-link!=""]');
+                linkItems.each(function(idx, li) {
+                     var link = $(li);
+                     if (ok) convertLinkToSets(link.attr("data-link"),corrSemaSet,corrProcSet,corrSkillSet);
+                     else convertLinkToSets(link.attr("data-link"),failSemaSet,failProcSet,failSkillSet);
+                });
             }
             //Codebox
             if(self.hasClass('codebox')) {
@@ -200,22 +226,50 @@ $(function(){
                 var input_code = codebox.val();
                 console.log( " input code="+input_code);
                 res = runCodeTests(input_code,setup_obj);
+                var ok = false;
                 if (res["ok"]) {
                    correct += 1;
+                   ok = true;
                 }
-                else
-                {
-                   var linkItems = self.find('input[type="text"][data-link!=""]');
-                   linkItems.each(function(idx, li) {
-                       var link = $(li);
-                       diagTable += link.attr("data-link");
-                       //console.log( "Textbox " + idx + ":" + link.attr("data-link") );
-                   });
-                   self.addClass('text-danger');
-                }
+                
+                var linkItems = self.find('textarea[type="text"][data-link!=""]');
+                linkItems.each(function(idx, li) {
+                    var link = $(li);
+                    if (ok) convertLinkToSets(link.attr("data-link"),corrSemaSet,corrProcSet,corrSkillSet);
+                    else convertLinkToSets(link.attr("data-link"),failSemaSet,failProcSet,failSkillSet);
+                });
+                self.addClass('text-danger');
             }
         });
+        
+        //строим объект для диагностической таблицы
+        var pageName = window.location.href.substring(window.location.href.lastIndexOf('/') + 1);
+        if (pageName.trim()=="") {
+            pageName = window.location.href.substring(0,window.location.href.lastIndexOf('/'));
+            pageName = pageName.substring(pageName.lastIndexOf('/') + 1);
+        }
+        var modelRes = {
+           correct: {
+              f : Array.from(corrSemaSet),
+              p : Array.from(corrProcSet),
+              s : Array.from(corrSkillSet)
+           },
+           fail: {
+              f : Array.from(failSemaSet),
+              p : Array.from(failProcSet),
+              s : Array.from(failSkillSet)
+           }
+        }
 
+        var diagTable = JSON.stringify(modelRes);
+        if (pageName=="") pageName="root";
+        console.log("Gen page name: "+pageName)
+        //Если нет такого параметра, в хранилище, то добавляем
+        if (!localStorage.hasOwnProperty(pageName)) {
+           localStorage.setItem(pageName,diagTable);
+        } else {
+           diagTable = "Уже была сформирована!";
+        }
         showScore(correct, total_questions, diagTable);
     }
 
@@ -224,7 +278,7 @@ $(function(){
         var msgClass = 'alert-danger';
         var diagText = '';
         if (score < 100) {
-           diagText = 'Диагностическая таблица: '+diag;
+           diagText = 'Диагностический скрипт: '+diag;
         }
         if (score >= 70) {
             msgClass = 'alert-success';
