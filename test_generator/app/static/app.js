@@ -248,7 +248,13 @@ $(function(){
             pageName = window.location.href.substring(0,window.location.href.lastIndexOf('/'));
             pageName = pageName.substring(pageName.lastIndexOf('/') + 1);
         }
+		if (pageName=="") pageName="root";
+		pageName = "um_" + pageName;
+        console.log("Gen page name: "+pageName)
+		
         var modelRes = {
+		   time: Date.now(),
+		   page: pageName,
            correct: {
               f : Array.from(corrSemaSet),
               p : Array.from(corrProcSet),
@@ -262,8 +268,6 @@ $(function(){
         }
 
         var diagTable = JSON.stringify(modelRes);
-        if (pageName=="") pageName="root";
-        console.log("Gen page name: "+pageName)
         //Если нет такого параметра, в хранилище, то добавляем
         if (!localStorage.hasOwnProperty(pageName)) {
            localStorage.setItem(pageName,diagTable);

@@ -33,6 +33,12 @@
 </head>
 <body>
   <h1>Текущая модель обучаемого</h1>
+  <div>
+    <button id="download-model">Скачать модель</button>
+	<input type="file" id="selectFiles" value="Import" />
+    <button id="upload-model">Загрузить модель из файла</button>
+    <button id="clear-model">Очистить модель</button>
+  </div>
   <h2>Табличный формат</h2>
   <div>
     <button id="download-csv">Скачать CSV</button>
@@ -99,21 +105,24 @@
 	    sidMap.set(json_table[i]["sid"],{correct: 0, fail: 0, cnt_ok: 0});
 	}
 	
-	//test_script
-	var test_log1 = {"time":1594370876751,"correct":{"f":["1.1.alg"],"p":[],"s":["s1.2.cvar"]},"fail":{"f":["1.1.valg","1.1.alg","1.1.prog","1.2.const","1.2.desc","1.2.bool"],"p":[],"s":["s1.2.cvar"]}};
-	var test_log2 = {"time":1594370876752,"correct":{"f":["1.1.alg","1.2.bool"],"p":[],"s":["s1.2.cvar"]},"fail":{"f":["1.1.valg","1.1.alg","1.1.prog","1.2.const","1.2.desc"],"p":[],"s":["s1.2.cvar"]}};
-	var test_log3 = {"time":1594370876753,"correct":{"f":["1.1.alg","1.2.bool"],"p":[],"s":["s1.2.cvar"]},"fail":{"f":["1.1.valg","1.1.alg","1.1.prog","1.2.const","1.2.desc"],"p":[],"s":["s1.2.cvar"]}};
+	var log_array = []
+	function updateLogArrayFromMemory() {
+	   for (let i = 0; i < localStorage.length; i++){
+		   key = localStorage.key(i);
+		   if(key.startsWith("um_")) {
+			   log_array.push(JSON.parse(localStorage.getItem(key)));
+		   }
+		}
+	}
 	
-	var log_array = [test_log3,test_log2,test_log1];
-	log_array.sort(function (a, b) {
-	  if (a["time"] > b["time"]) {
-		return 1;
-	  }
-	  if (a["time"] < b["time"]) {
-		return -1;
-	  }
-	  return 0;
-	});
+	updateLogArrayFromMemory();
+	
+	//test_script
+	//var test_log1 = {"time":1594370876751,"page":"um_exam1","correct":{"f":["1.1.alg"],"p":[],"s":["s1.2.cvar"]},"fail":{"f":["1.1.valg","1.1.alg","1.1.prog","1.2.const","1.2.desc","1.2.bool"],"p":[],"s":["s1.2.cvar"]}};
+	//var test_log2 = {"time":1594370876752,"page":"um_exam2","correct":{"f":["1.1.alg","1.2.bool"],"p":[],"s":["s1.2.cvar"]},"fail":{"f":["1.1.valg","1.1.alg","1.1.prog","1.2.const","1.2.desc"],"p":[],"s":["s1.2.cvar"]}};
+	//var test_log3 = {"time":1594370876753,"page":"um_exam3","correct":{"f":["1.1.alg","1.2.bool"],"p":[],"s":["s1.2.cvar"]},"fail":{"f":["1.1.valg","1.1.alg","1.1.prog","1.2.const","1.2.desc"],"p":[],"s":["s1.2.cvar"]}};
+	
+	//var log_array = [test_log3,test_log2,test_log1];
 	
 	updateTableFromUserLog(sidMap,log_array);
 	
@@ -207,6 +216,63 @@
         }
 	    updateTreantNodeValues(simple_chart_config["nodeStructure"],sidMap)
 		new Treant( simple_chart_config );
+		
+		function clearModelInStorage() {
+		   keys_for_rem = [];
+		    for (let i = 0; i < localStorage.length; i++){
+			   key = localStorage.key(i);
+			   if(key.startsWith("um_")) {
+				   keys_for_rem.push(key);
+			   }
+			}
+			
+			for (let i = 0; i < keys_for_rem.length; i++){
+			    localStorage.removeItem(keys_for_rem[i]);
+			}
+		}
+		
+		//Обработка кнопок работы с моделью
+		document.getElementById("download-model").addEventListener("click", function(){
+			$("<a />", {
+				"download": "model.json",
+				"href" : "data:application/json;charset=utf-8," + encodeURIComponent(JSON.stringify(log_array)),
+			}).appendTo("body")
+			  .click(function() {
+				 $(this).remove()
+			})[0].click()
+		});
+		
+		document.getElementById("upload-model").addEventListener("click", function(){
+		  var files = document.getElementById('selectFiles').files;
+		  if (files.length <= 0) {
+			return false;
+		  }
+		  
+		  var fr = new FileReader();
+		  
+		  fr.onload = function(e) { 
+			var result = JSON.parse(e.target.result);
+			//TODO: update local storage from array
+			console.log(result)
+			clearModelInStorage();
+			for (var i = 0; i < result.length; i++){
+			    if (result[i].hasOwnProperty("page"))
+				{
+				    localStorage.setItem(result[i]["page"],JSON.stringify(result[i]));
+				}
+			}
+		  }
+		  
+		  fr.readAsText(files.item(0));
+		  location.reload();
+		});
+		
+		document.getElementById("clear-model").addEventListener("click", function(){
+		    //clear all local storage
+			clearModelInStorage();
+			alert('Finished!');
+			location.reload();
+		});
 	
 })
 </script>
