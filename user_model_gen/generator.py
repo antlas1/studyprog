@@ -11,10 +11,10 @@ import json
 from jinja2 import Environment, PackageLoader, select_autoescape
 from abc import ABC, abstractmethod
 
-def render_model(model_json_content: str, out_fname: str, wrapper: str) -> None:
+def render_model(model_json_content: str, tree_json_content: str, out_fname: str, wrapper: str) -> None:
     env = Environment(loader=PackageLoader('app', 'static'), autoescape=select_autoescape(['html', 'xml']))
 
-    out_html = env.get_template(wrapper).render(model=model_json_content)
+    out_html = env.get_template(wrapper).render(model=model_json_content, model_tree=tree_json_content)
 
     with io.open(f"{out_fname}", "w+", encoding='UTF-8') as f:
         f.write(out_html)
@@ -102,7 +102,7 @@ class TreantViewIterator(ModelIterator):
     def _iterate_with_return(self, graph, start) -> None: 
        if not start in graph:
            return None
-       node_hier = { 'text': { 'name' : start, 'desc' : graph[start]['body'] }, 'children' : [] }
+       node_hier = { 'text': { 'name' : start, 'desc' : "" }, 'children' : [] }
        if len(graph[start]['childs']) == 0:
            return node_hier
        for node in graph[start]['childs']:
@@ -185,14 +185,17 @@ if __name__ == "__main__":
     table_it.iterate(conn_fact_model,"root")
     #print(table_it.json_repr())
     
-    render_model(table_it.json_repr(),'../site/model.html','wrapper.html')
+    render_model(table_it.json_repr(),treant_it.json_repr(),'../site/model.html','wrapper.html')
     
     #print(treant_it.json_repr())
-    #print('Disconnected facts: '+','.join(disconn_facts))
+    print('Disconnected facts: '+','.join(disconn_facts))
     
     #дамп для исследования
     with io.open(f"{args.json}", "w+", encoding='UTF-8') as f:
         json.dump(model, f, ensure_ascii=False)
+        
+    #with io.open("../site/trean.json", "w+", encoding='UTF-8') as f:
+    #    f.write(treant_it.json_repr())
 
     print("ok")
     sys.exit(0)

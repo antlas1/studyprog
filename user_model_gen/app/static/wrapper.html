@@ -4,16 +4,44 @@
     <script type="text/javascript" src="http://code.jquery.com/jquery-1.9.1.js"></script>
     <script type="text/javascript" src="https://unpkg.com/tabulator-tables@4.7.1/dist/js/tabulator.min.js"></script>
 	<link href="https://cdnjs.cloudflare.com/ajax/libs/tabulator/4.7.1/css/tabulator_site.min.css" rel="stylesheet">
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/raphael/2.3.0/raphael.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/treant-js/1.0/Treant.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-easing/1.4.1/jquery.easing.min.js"></script>
+	<link href="https://cdnjs.cloudflare.com/ajax/libs/tabulator/4.7.1/css/tabulator_site.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/treant-js/1.0/Treant.css">
+	<style>
+	body,div,dl,dt,dd,ul,ol,li,h1,h2,h3,h4,h5,h6,pre,form,fieldset,input,textarea,p,blockquote,th,td { margin:0; padding:0; }
+/* optional Container STYLES */
+.chart { height: 900px; width: 1300px; margin: 5px; margin: 15px auto; border: 3px solid #DDD; border-radius: 3px; }
+
+.tennis-draw {
+    font-size: 12px;
+    width: 50px;
+	border: 3px solid #DDD;
+	margin:0; 
+	padding:0;
+}
+
+.tennis-draw .node-name { padding: 2px; white-space: pre; color: #00AFF0; }
+.tennis-draw .node-desc { padding: 2px; color: black; }
+
+.tennis-draw.good { background: green; }
+.tennis-draw.bad { background: red; }
+.tennis-draw.warning { background: #FFFF00; }
+	</style>
     <meta charset="utf-8">
 </head>
 <body>
-  <h1>Модель обучения</h1>
+  <h1>Текущая модель обучаемого</h1>
+  <h2>Табличный формат</h2>
   <div>
     <button id="download-csv">Скачать CSV</button>
     <button id="download-json">Скачать JSON</button>
     <button id="download-html">Скачать HTML</button>
   </div>
   <div id="example-table"></div>
+  <h2>Дерево диагностики</h2>
+  <div class="chart" id="OrganiseChart-model"></div>
 <script>
 	$(document).ready(function(e) {
 	var json_table = {{ model |safe}};
@@ -38,6 +66,7 @@
 		      if (sid_map.has(tag)) {
 			     curr_val = sid_map.get(tag);
 				 curr_val.correct+=1;
+				 //При каждом последовательном правильном ответе увеличиваем счетчик успеха
 				 curr_val.cnt_ok+=1;
 				 if (curr_val.cnt_ok > 5) curr_val.cnt_ok = 5;
 				 sid_map.set(tag,curr_val);
@@ -51,7 +80,10 @@
 		      if (sid_map.has(tag)) {
 			     curr_val = sid_map.get(tag);
 				 curr_val.fail+=1;
-				 curr_val.cnt_ok = 0;
+				 //При неудаче, для успеха меньше 3-х звезд, сбрасываем счетчик, иначе понижаем на единицу
+				 if (curr_val.cnt_ok < 4) curr_val.cnt_ok = 0;
+				 else curr_val.cnt_ok-=1;
+				 
 				 sid_map.set(tag,curr_val);
 			  }
 			  else {
@@ -68,9 +100,22 @@
 	}
 	
 	//test_script
-	var test_log = {"time":1594370876751,"correct":{"f":["1.1.alg","1.2.bool"],"p":[],"s":["s1.2.cvar"]},"fail":{"f":["1.1.valg","1.1.alg","1.1.prog","1.2.const","1.2.desc"],"p":[],"s":["s1.2.cvar"]}};
+	var test_log1 = {"time":1594370876751,"correct":{"f":["1.1.alg"],"p":[],"s":["s1.2.cvar"]},"fail":{"f":["1.1.valg","1.1.alg","1.1.prog","1.2.const","1.2.desc","1.2.bool"],"p":[],"s":["s1.2.cvar"]}};
+	var test_log2 = {"time":1594370876752,"correct":{"f":["1.1.alg","1.2.bool"],"p":[],"s":["s1.2.cvar"]},"fail":{"f":["1.1.valg","1.1.alg","1.1.prog","1.2.const","1.2.desc"],"p":[],"s":["s1.2.cvar"]}};
+	var test_log3 = {"time":1594370876753,"correct":{"f":["1.1.alg","1.2.bool"],"p":[],"s":["s1.2.cvar"]},"fail":{"f":["1.1.valg","1.1.alg","1.1.prog","1.2.const","1.2.desc"],"p":[],"s":["s1.2.cvar"]}};
 	
-	updateTableFromUserLog(sidMap,[test_log,test_log,test_log]);
+	var log_array = [test_log3,test_log2,test_log1];
+	log_array.sort(function (a, b) {
+	  if (a["time"] > b["time"]) {
+		return 1;
+	  }
+	  if (a["time"] < b["time"]) {
+		return -1;
+	  }
+	  return 0;
+	});
+	
+	updateTableFromUserLog(sidMap,log_array);
 	
 	//from map to table update
 	console.log(sidMap);
@@ -94,11 +139,11 @@
 		data:json_table, //assign data to table
 		layout:"fitColumns", //fit columns to width of table (optional)
 		columns:[ //Define Table Columns
-			{title:"Тег", field:"sid", width:50},
+			{title:"Тег", field:"sid", width:70},
 			{title:"Описание", field:"desc", hozAlign:"left"},
-			{title:"Связи", field:"childs"},
-			{title:"Правильных", field:"ncor"},
-			{title:"Неправильных", field:"nfail"},
+			{title:"Связи", field:"childs", width:60},
+			{title:"Правильных", field:"ncor", width:60},
+			{title:"Неправильных", field:"nfail", width:60},
 			{title:"Счетчик успеха", field:"cnt_ok", formatter:"star", formatterParams:{stars:5}, hozAlign:"center", width:120},
 		],
 	});
@@ -117,6 +162,51 @@
 	document.getElementById("download-html").addEventListener("click", function(){
 		table.download("html", "data.html", {style:true});
 	});
+	
+	//Treant diagnosis tree
+	var simple_chart_config = {
+		chart: {
+			container: "#OrganiseChart-model",
+			levelSeparation:    10,
+			siblingSeparation:  5,
+			subTeeSeparation:   5,
+			rootOrientation: "EAST",
+
+			node: {
+				HTMLclass: "tennis-draw",
+				drawLineThrough: false,
+				collapsable: true
+			},
+			connectors: {
+				type: "straight",
+				style: {
+					"stroke-width": 2,
+					"stroke": "#ccc"
+				}
+			}
+
+		},
+		
+		nodeStructure: {{ model_tree |safe}}
+		};
+	
+	    function updateTreantNodeValues(root_node, sid_map) {
+		    tag = root_node["text"]["name"];
+			if (sid_map.has(tag)) {
+			   values = sid_map.get(tag);
+			   if (values["cnt_ok"] < 1) root_node["text"]["desc"] = "(+"+values["correct"]+"/-"+values["fail"]+")";
+			   else root_node["text"]["desc"] = values["cnt_ok"]+"★"+"(+"+values["correct"]+"/-"+values["fail"]+")";
+			   //покраска в зависимости от количества ответов и счетчика успеха
+			   if (values["cnt_ok"] >= 3) root_node["HTMLclass"] = "good";
+			   else if (values["cnt_ok"] < 3 && values["fail"] > 3) root_node["HTMLclass"] = "bad";
+			   else if (values["cnt_ok"] < 3 && values["fail"] > values["correct"]) root_node["HTMLclass"] = "warning";
+			}
+			for (let i=0;i<root_node["children"].length;i++) {
+			   updateTreantNodeValues(root_node["children"][i], sid_map);
+			}
+        }
+	    updateTreantNodeValues(simple_chart_config["nodeStructure"],sidMap)
+		new Treant( simple_chart_config );
 	
 })
 </script>
