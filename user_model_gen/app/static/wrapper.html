@@ -2,39 +2,18 @@
 <html>
 <head>
     <script type="text/javascript" src="http://code.jquery.com/jquery-1.9.1.js"></script>
+    <script type="text/javascript" src="https://unpkg.com/tabulator-tables@4.7.1/dist/js/tabulator.min.js"></script>
+	<link href="https://cdnjs.cloudflare.com/ajax/libs/tabulator/4.7.1/css/tabulator_site.min.css" rel="stylesheet">
     <meta charset="utf-8">
-	<style type="text/css">
-    html, body {
-		padding: 5px;
-	}
-
-	#data-table {
-		font-family: calibri, arial;
-		width: 400px;
-	}
-
-	#data-table thead td {
-		background-color: #8CCCF1;
-	}
-
-	#data-table td {
-		border: 1px solid #466E85;
-		width: 136px;
-		padding: 7px;
-	}
-  </style>
 </head>
 <body>
-  <table id="data-table">
-  <thead>
-    <tr>
-      <td>Тег</td>
-      <td>Описание</td>
-	  <td>Связи</td>
-    </tr>
-  </thead>
-  <tbody></tbody>
-</table>
+  <h1>Модель обучения</h1>
+  <div>
+    <button id="download-csv">Скачать CSV</button>
+    <button id="download-json">Скачать JSON</button>
+    <button id="download-html">Скачать HTML</button>
+  </div>
+  <div id="example-table"></div>
 <script>
 	$(document).ready(function(e) {
 	var json_table = {{ model |safe}};
@@ -51,9 +30,94 @@
         $('#' + tableId + ' tbody').html(rows);
     }
 	
-	//TODO: add table values statistics
-    
-    loadTable('data-table', ['sid', 'desc', 'childs'], json_table);
+	function updateTableFromUserLog(sid_map,test_log_array) {
+	   for (let i = 0; i < test_log_array.length; i++) {
+		  log = test_log_array[i];
+		  for (let j = 0; j < log["correct"]["f"].length; j++) {
+		      tag = log["correct"]["f"][j];
+		      if (sid_map.has(tag)) {
+			     curr_val = sid_map.get(tag);
+				 curr_val.correct+=1;
+				 curr_val.cnt_ok+=1;
+				 if (curr_val.cnt_ok > 5) curr_val.cnt_ok = 5;
+				 sid_map.set(tag,curr_val);
+			  }
+			  else {
+			     console.log("Warning! No SID for update correct= "+tag);
+			  }
+          }
+          for (let j = 0; j < log["fail"]["f"].length; j++) {
+		      tag = log["fail"]["f"][j];
+		      if (sid_map.has(tag)) {
+			     curr_val = sid_map.get(tag);
+				 curr_val.fail+=1;
+				 curr_val.cnt_ok = 0;
+				 sid_map.set(tag,curr_val);
+			  }
+			  else {
+			     console.log("Warning! No SID for update fail= "+tag);
+			  }
+          }		  
+	   }
+	}
+	
+	//from table to map
+	sidMap = new Map();
+	for (let i = 0; i < json_table.length; i++) {
+	    sidMap.set(json_table[i]["sid"],{correct: 0, fail: 0, cnt_ok: 0});
+	}
+	
+	//test_script
+	var test_log = {"time":1594370876751,"correct":{"f":["1.1.alg","1.2.bool"],"p":[],"s":["s1.2.cvar"]},"fail":{"f":["1.1.valg","1.1.alg","1.1.prog","1.2.const","1.2.desc"],"p":[],"s":["s1.2.cvar"]}};
+	
+	updateTableFromUserLog(sidMap,[test_log,test_log,test_log]);
+	
+	//from map to table update
+	console.log(sidMap);
+	for (let i = 0; i < json_table.length; i++) {
+	   tag = json_table[i]["sid"];
+	   if (sidMap.has(tag)) {
+	      values = sidMap.get(tag);
+		  json_table[i]["ncor"] = values["correct"]
+		  json_table[i]["nfail"] = values["fail"]
+		  json_table[i]["cnt_ok"] = values["cnt_ok"]
+	   }
+	   else
+	   {
+	      json_table[i]["ncor"] = 0
+		  json_table[i]["nfail"] = 0
+		  json_table[i]["cnt_ok"] = 0
+	   }
+	}
+	
+	var table = new Tabulator("#example-table", {
+		data:json_table, //assign data to table
+		layout:"fitColumns", //fit columns to width of table (optional)
+		columns:[ //Define Table Columns
+			{title:"Тег", field:"sid", width:50},
+			{title:"Описание", field:"desc", hozAlign:"left"},
+			{title:"Связи", field:"childs"},
+			{title:"Правильных", field:"ncor"},
+			{title:"Неправильных", field:"nfail"},
+			{title:"Счетчик успеха", field:"cnt_ok", formatter:"star", formatterParams:{stars:5}, hozAlign:"center", width:120},
+		],
+	});
+	
+	//trigger download of data.csv file
+	document.getElementById("download-csv").addEventListener("click", function(){
+		table.download("csv", "data.csv");
+	});
+
+	//trigger download of data.json file
+	document.getElementById("download-json").addEventListener("click", function(){
+		table.download("json", "data.json");
+	});
+
+	//trigger download of data.html file
+	document.getElementById("download-html").addEventListener("click", function(){
+		table.download("html", "data.html", {style:true});
+	});
+	
 })
 </script>
 

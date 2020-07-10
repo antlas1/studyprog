@@ -114,18 +114,22 @@ class TreantViewIterator(ModelIterator):
 class TableViewIterator(ModelIterator):
     def __init__(self):
         self._table = []
+        self._connected_id = []
         
     def iterate(self, graph, start) -> None:  
        if not start in graph:
            return
-       self._table.append({'sid' : start, 'desc' : graph[start]['body'], 'childs' : ','.join(graph[start]['childs']) })
-       if len(graph[start]['childs']) == 0:
-           return
-       for node in graph[start]['childs']:
-            self.iterate(graph, node)
+       if not start in self._connected_id:
+           self._connected_id.append(start)
+           self._table.append({'sid' : start, 'desc' : graph[start]['body'], 'childs' : ','.join(graph[start]['childs']) })
+           if len(graph[start]['childs']) == 0:
+               return
+           for node in graph[start]['childs']:
+                self.iterate(graph, node)
        return
 
     def clear(self):
+        self._connected_id = []
         self._table = []
         
     def json_repr(self):
