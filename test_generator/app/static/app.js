@@ -46,6 +46,7 @@ $(function(){
        //console.log(setupObj);
        //начинаем постепенно заменять пользовательский код на заглушечный
        var newCode = userCode;
+	   var noMainFun = false;
        if (setupObj.hasOwnProperty("inp_vars")) {
           //замена переменных, если они есть среди входных параметров
           var inpArray = setupObj["inp_vars"];
@@ -57,15 +58,23 @@ $(function(){
           }
           //Замена заголовка функции
           var reVoidMain = new RegExp("function\\s+main\\(\\s*\\)\\s*\\{");
-          var inpParams = inpArray.join(',');
-          newCode = newCode.replace(reVoidMain, 'function main('+inpParams+') {');
+		  var inpParams = inpArray.join(',');
+		  if (newCode.search(reVoidMain) != -1) {
+			newCode = newCode.replace(reVoidMain, 'function main('+inpParams+') {');
+		  } else {
+		    noMainFun = true;
+			newCode = 'function main('+inpParams+') {\n' + newCode;
+		  }
        }
        if (setupObj.hasOwnProperty("ret_exp")) {
-          posFin = newCode.lastIndexOf('}');
-          newCode = newCode.substring(0,posFin);
-          newCode += 'return '+setupObj["ret_exp"]+';\n}\n';
+	      if (noMainFun == false) {
+			  posFin = newCode.lastIndexOf('}');
+			  newCode = newCode.substring(0,posFin);
+		  }
+          newCode += '\nreturn '+setupObj["ret_exp"]+';\n}\n';
        }
        
+	   newCode += "function test(){\n";
        newCode += "var valid = '';\n";
        if (setupObj.hasOwnProperty("test_exp")) {
           var testArray = setupObj["test_exp"];
@@ -73,7 +82,9 @@ $(function(){
              newCode += "if ("+testArray[i]+") valid+='1'; else valid+='0';\n";
           }
        }
-       newCode += "valid+'';\n";
+       newCode += "return valid;\n";
+	   newCode += "}\n";
+	   newCode += "test();\n";
        
        
        console.log(newCode);
@@ -97,22 +108,26 @@ $(function(){
        for (let i = 0; i < ntest; i++) {
           testArray.push('?');
        }
-       var ansLen = ntest < res.length ? ntest : res.length;
-       if (ntest == res.length) finishOk = true;
-       else finishOk = false;
-       for (let i = 0; i < ansLen; i++) {
-          if (res.charAt(i) == 1) { 
-             testArray[i]='1';
-          }
-          else if (res.charAt(i) == 0) {
-             finishOk = false;
-             testArray[i]='0';
-          } else {
-             finishOk = false;
-          }
-       }
+	   if( typeof res !== 'undefined' ) {
+		   var ansLen = ntest < res.length ? ntest : res.length;
+		   if (ntest == res.length) finishOk = true;
+		   else finishOk = false;
+		   for (let i = 0; i < ansLen; i++) {
+			  if (res.charAt(i) == 1) { 
+				 testArray[i]='1';
+			  }
+			  else if (res.charAt(i) == 0) {
+				 finishOk = false;
+				 testArray[i]='0';
+			  } else {
+				 finishOk = false;
+			  }
+		   }
+	   } else {
+	      finishOk = false;
+	   }
        result = {ntest: ntest,ans: testArray,ok: finishOk}
-       console.log('Finished! Res='+res+' out= '+JSON.stringify(result));
+       console.log('Finished! res='+res+' out= '+JSON.stringify(result));
        return result;
     }
 
@@ -221,7 +236,7 @@ $(function(){
                 test_code=test_code.replace("ret_exp","\"ret_exp\"");
                 test_code=test_code.replace("test_exp","\"test_exp\"");
                 test_code=test_code.replace(/'/g,"\"");
-                console.log( "Codebox test code="+test_code);
+                //console.log( "Codebox test code="+test_code);
                 var setup_obj = JSON.parse(test_code);
                 var input_code = codebox.val();
                 console.log( " input code="+input_code);
@@ -231,6 +246,9 @@ $(function(){
                    correct += 1;
                    ok = true;
                 }
+				else {
+				   self.addClass('text-danger');
+				}
                 
                 var linkItems = self.find('textarea[type="text"][data-link!=""]');
                 linkItems.each(function(idx, li) {
@@ -238,7 +256,6 @@ $(function(){
                     if (ok) convertLinkToSets(link.attr("data-link"),corrSemaSet,corrProcSet,corrSkillSet);
                     else convertLinkToSets(link.attr("data-link"),failSemaSet,failProcSet,failSkillSet);
                 });
-                self.addClass('text-danger');
             }
         });
         
