@@ -48,6 +48,9 @@ def parse_md_list(content_lines):
                     rule_body = rule_body[:pos_st_childs]
                  #print(rule_id+':'+rule_body+' childs:'+str(childs))
                  res_map[rule_id] = {'body':rule_body.strip(), 'childs':childs}
+                 #После root ничего не смотрим
+                 if rule_id == 'root':
+                     break
          
    return res_map
    
