@@ -19,8 +19,7 @@ def render_model(model_json_content: str, tree_json_content: str, out_fname: str
     with io.open(f"{out_fname}", "w+", encoding='UTF-8') as f:
         f.write(out_html)
 
-def parse_md_list(content_lines):
-   res_map={}
+def parse_md_list(content_lines, res_map, root_name):
    start_list = False
    #идем до первых решеток
    for line in content_lines:
@@ -47,12 +46,13 @@ def parse_md_list(content_lines):
                        childs[i] = childs[i].strip()
                     rule_body = rule_body[:pos_st_childs]
                  #print(rule_id+':'+rule_body+' childs:'+str(childs))
-                 res_map[rule_id] = {'body':rule_body.strip(), 'childs':childs}
+                 
                  #После root ничего не смотрим
                  if rule_id == 'root':
+                     res_map[root_name] = {'body':rule_body.strip(), 'childs':childs} 
                      break
-         
-   return res_map
+                 else:
+                     res_map[rule_id] = {'body':rule_body.strip(), 'childs':childs}
    
    
 class ModelIterator(ABC):
@@ -152,30 +152,21 @@ if __name__ == "__main__":
     
     args = parser.parse_args()
     
-    facts_map = {}
-    procedure_map = {}
-    skills_map = {}
+    model_map = {}
     with io.open(f"{args.facts}", "r", encoding='UTF-8') as f:
-       facts_map = parse_md_list(f.readlines())
+       parse_md_list(f.readlines(),model_map,"root_facts")
     with io.open(f"{args.procedures}", "r", encoding='UTF-8') as f:
-       procedure_map = parse_md_list(f.readlines())
-    with io.open(f"{args.skills}", "r", encoding='UTF-8') as f:
-       skills_map = parse_md_list(f.readlines())
+       parse_md_list(f.readlines(),model_map,"root_proc")
+    model_map["root"] = {'body':'Все знания', 'childs':["root_facts","root_proc"]}
     
-    #полная модель, в сыром виде    
-    model = {
-    'facts': facts_map,
-    'procedures': procedure_map,
-    'skills': skills_map
-    }
     
     #поиск подключенных узлов
     fact_it = ConnectedFilterIterator()
-    fact_it.iterate(facts_map,'root')
+    fact_it.iterate(model_map,'root')
     conn_facts = fact_it.connected_id()
     
     disconn_facts = []
-    for key in facts_map:
+    for key in model_map:
        if not key in conn_facts:
           disconn_facts.append(key)
           
@@ -195,7 +186,7 @@ if __name__ == "__main__":
     
     #дамп для исследования
     with io.open(f"{args.json}", "w+", encoding='UTF-8') as f:
-        json.dump(model, f, ensure_ascii=False)
+        json.dump(model_map, f, ensure_ascii=False)
         
     #with io.open("../site/trean.json", "w+", encoding='UTF-8') as f:
     #    f.write(treant_it.json_repr())

@@ -8,7 +8,14 @@ $(function(){
     });
     
     var myInterpreter;
-
+	var pageName = window.location.href.substring(window.location.href.lastIndexOf('/') + 1);
+	if (pageName.trim()=="") {
+		pageName = window.location.href.substring(0,window.location.href.lastIndexOf('/'));
+		pageName = pageName.substring(pageName.lastIndexOf('/') + 1);
+	}
+	if (pageName=="") pageName="root";
+	pageName = "um_" + pageName;
+	console.log("Gen page name: "+pageName)									
     function step() {
       if (myInterpreter.stateStack.length) {
         var node =
@@ -131,18 +138,19 @@ $(function(){
        return result;
     }
 
-    function convertLinkToSets(link, setSema, setProc, setSkill) {
+    function convertLinkToSets(link, setSema, setSkill) {
        tag_array = link.trim().split(",");
+	   var isFacts;
+	   isFacts = true;
        for (let i = 0; i < tag_array.length; i++) {
           var tag = tag_array[i].trim()
           if (tag.length > 0) {
-            if (tag.charAt(0) == 'p') {
-               setProc.add(tag_array[i]);
-            } else if (tag.charAt(0) == 's') {
-               setSkill.add(tag_array[i]);
-            } else {
-               setSema.add(tag_array[i]);
-            }
+			if (i==0 && tag == 'UM') {
+			   isFacts = false;
+		    } else {
+			   if (isFacts) setSema.push(tag_array[i]);
+			   else setSkill.push(tag_array[i]);
+		    }
           }
        }
     }
@@ -152,13 +160,11 @@ $(function(){
         var questions = $('li.question-row');
         var total_questions = questions.length;
         var correct = 0;
-        var corrSemaSet = new Set();
-        var corrProcSet = new Set();
-        var corrSkillSet = new Set();
+        var corrSema = new Array();
+        var corrSkill = new Array();
         
-        var failSemaSet = new Set();
-        var failProcSet = new Set();
-        var failSkillSet = new Set();
+        var failSema = new Array();
+        var failSkill = new Array();
 
         questions.each(function(i, el) {
             var self = $(this);
@@ -175,8 +181,8 @@ $(function(){
                 var linkItems = self.find('input[type="radio"][data-link!=""]');
                 linkItems.each(function(idx, li) {
                     var link = $(li);
-                    if (ok) convertLinkToSets(link.attr("data-link"),corrSemaSet,corrProcSet,corrSkillSet);
-                    else convertLinkToSets(link.attr("data-link"),failSemaSet,failProcSet,failSkillSet);
+                    if (ok) convertLinkToSets(link.attr("data-link"),corrSema,corrSkill);
+                    else convertLinkToSets(link.attr("data-link"),failSema,failSkill);
                 });
                 
             }
@@ -196,8 +202,8 @@ $(function(){
                 var linkItems = self.find('input[type="text"][data-link!=""]');
                 linkItems.each(function(idx, li) {
                     var link = $(li);
-                    if (ok) convertLinkToSets(link.attr("data-link"),corrSemaSet,corrProcSet,corrSkillSet);
-                    else convertLinkToSets(link.attr("data-link"),failSemaSet,failProcSet,failSkillSet);
+                    if (ok) convertLinkToSets(link.attr("data-link"),corrSema,corrSkill);
+                    else convertLinkToSets(link.attr("data-link"),failSema,failSkill);
                 });
             }
             // Multiple selection Questions.
@@ -223,8 +229,8 @@ $(function(){
                 var linkItems = self.find('input[type="checkbox"][data-link!=""]');
                 linkItems.each(function(idx, li) {
                      var link = $(li);
-                     if (ok) convertLinkToSets(link.attr("data-link"),corrSemaSet,corrProcSet,corrSkillSet);
-                     else convertLinkToSets(link.attr("data-link"),failSemaSet,failProcSet,failSkillSet);
+                     if (ok) convertLinkToSets(link.attr("data-link"),corrSema,corrSkill);
+                     else convertLinkToSets(link.attr("data-link"),failSema,failSkill);
                 });
             }
             //Codebox
@@ -253,38 +259,28 @@ $(function(){
                 var linkItems = self.find('textarea[type="text"][data-link!=""]');
                 linkItems.each(function(idx, li) {
                     var link = $(li);
-                    if (ok) convertLinkToSets(link.attr("data-link"),corrSemaSet,corrProcSet,corrSkillSet);
-                    else convertLinkToSets(link.attr("data-link"),failSemaSet,failProcSet,failSkillSet);
+                    if (ok) convertLinkToSets(link.attr("data-link"),corrSema,corrSkill);
+                    else convertLinkToSets(link.attr("data-link"),failSema,failSkill);
                 });
             }
         });
         
         //строим объект для диагностической таблицы
-        var pageName = window.location.href.substring(window.location.href.lastIndexOf('/') + 1);
-        if (pageName.trim()=="") {
-            pageName = window.location.href.substring(0,window.location.href.lastIndexOf('/'));
-            pageName = pageName.substring(pageName.lastIndexOf('/') + 1);
-        }
-		if (pageName=="") pageName="root";
-		pageName = "um_" + pageName;
-        console.log("Gen page name: "+pageName)
-		
         var modelRes = {
 		   time: Date.now(),
 		   page: pageName,
            correct: {
-              f : Array.from(corrSemaSet),
-              p : Array.from(corrProcSet),
-              s : Array.from(corrSkillSet)
+              facts : corrSema,
+              skills : corrSkill
            },
            fail: {
-              f : Array.from(failSemaSet),
-              p : Array.from(failProcSet),
-              s : Array.from(failSkillSet)
+              facts : failSema,
+              skills : failSkill
            }
         }
 
-        var diagTable = JSON.stringify(modelRes);
+		var diagTable;
+        diagTable = JSON.stringify(modelRes);
         //Если нет такого параметра, в хранилище, то добавляем
         if (!localStorage.hasOwnProperty(pageName)) {
            localStorage.setItem(pageName,diagTable);
@@ -323,5 +319,18 @@ $(function(){
     }
     $('#check-questions').on('click', checkQuestion);
     $('#reset-questions').on('click', resetQuestions);
+	$('#download-json').on('click', function(){
+	        if (localStorage.hasOwnProperty(pageName)) {
+			    var tbl;
+				tbl = localStorage.getItem(pageName);
+				$("<a />", {
+					"download": "result.json",
+					"href" : "data:application/json;charset=utf-8," + encodeURIComponent(tbl),
+				}).appendTo("body")
+				  .click(function() {
+					 $(this).remove()
+				})[0].click()
+			}
+		});																										 
 
 });

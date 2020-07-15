@@ -64,31 +64,60 @@
         $('#' + tableId + ' tbody').html(rows);
     }
 	
-	function updateTableFromUserLog(sid_map,test_log_array) {
+function updateTableFromUserLog(sid_map,test_log_array) {
 	   for (let i = 0; i < test_log_array.length; i++) {
 		  log = test_log_array[i];
-		  for (let j = 0; j < log["correct"]["f"].length; j++) {
-		      tag = log["correct"]["f"][j];
+		  for (let j = 0; j < log["correct"]["facts"].length; j++) {
+		      tag = log["correct"]["facts"][j];
 		      if (sid_map.has(tag)) {
 			     curr_val = sid_map.get(tag);
-				 curr_val.correct+=1;
+				 curr_val.correct_facts+=1;
 				 //При каждом последовательном правильном ответе увеличиваем счетчик успеха
-				 curr_val.cnt_ok+=1;
-				 if (curr_val.cnt_ok > 5) curr_val.cnt_ok = 5;
+				 curr_val.cnt_ok_facts+=1;
+				 if (curr_val.cnt_ok_facts > 5) curr_val.cnt_ok_facts = 5;
 				 sid_map.set(tag,curr_val);
 			  }
 			  else {
 			     console.log("Warning! No SID for update correct= "+tag);
 			  }
           }
-          for (let j = 0; j < log["fail"]["f"].length; j++) {
-		      tag = log["fail"]["f"][j];
+          for (let j = 0; j < log["fail"]["facts"].length; j++) {
+		      tag = log["fail"]["facts"][j];
 		      if (sid_map.has(tag)) {
 			     curr_val = sid_map.get(tag);
-				 curr_val.fail+=1;
+				 curr_val.fail_facts+=1;
 				 //При неудаче, для успеха меньше 3-х звезд, сбрасываем счетчик, иначе понижаем на единицу
-				 if (curr_val.cnt_ok < 4) curr_val.cnt_ok = 0;
-				 else curr_val.cnt_ok-=1;
+				 if (curr_val.cnt_ok_facts < 4) curr_val.cnt_ok_facts = 0;
+				 else curr_val.cnt_ok_facts-=1;
+				 
+				 sid_map.set(tag,curr_val);
+			  }
+			  else {
+			     console.log("Warning! No SID for update fail= "+tag);
+			  }
+          }	
+		  for (let j = 0; j < log["correct"]["skills"].length; j++) {
+		      tag = log["correct"]["skills"][j];
+		      if (sid_map.has(tag)) {
+			     curr_val = sid_map.get(tag);
+				 curr_val.correct_skills+=1;
+				 //При каждом последовательном правильном ответе увеличиваем счетчик успеха
+				 curr_val.cnt_ok_skills+=1;
+				 if (curr_val.cnt_ok_skills > 5) curr_val.cnt_ok_skills = 5;
+				 sid_map.set(tag,curr_val);
+			  }
+			  else {
+			     console.log("Warning! No SID for update correct= "+tag);
+			  }
+          }
+          for (let j = 0; j < log["fail"]["skills"].length; j++) {
+		      tag = log["fail"]["skills"][j];
+		      if (sid_map.has(tag)) {
+			     curr_val = sid_map.get(tag);
+				 curr_val.fail_skills+=1;
+				 //При неудаче, для успеха меньше 3-х звезд, сбрасываем счетчик, иначе понижаем на единицу
+				 if (curr_val.cnt_ok_skills < 4) curr_val.cnt_ok_facts = 0;
+				 else curr_val.cnt_ok_skills-=1;
 				 
 				 sid_map.set(tag,curr_val);
 			  }
@@ -102,7 +131,7 @@
 	//from table to map
 	sidMap = new Map();
 	for (let i = 0; i < json_table.length; i++) {
-	    sidMap.set(json_table[i]["sid"],{correct: 0, fail: 0, cnt_ok: 0});
+	    sidMap.set(json_table[i]["sid"],{correct_facts: 0, fail_facts: 0, cnt_ok_facts: 0, correct_skills: 0, fail_skills: 0, cnt_ok_skills: 0});
 	}
 	
 	var log_array = []
@@ -121,7 +150,6 @@
 	//var test_log1 = {"time":1594370876751,"page":"um_exam1","correct":{"f":["1.1.alg"],"p":[],"s":["s1.2.cvar"]},"fail":{"f":["1.1.valg","1.1.alg","1.1.prog","1.2.const","1.2.desc","1.2.bool"],"p":[],"s":["s1.2.cvar"]}};
 	//var test_log2 = {"time":1594370876752,"page":"um_exam2","correct":{"f":["1.1.alg","1.2.bool"],"p":[],"s":["s1.2.cvar"]},"fail":{"f":["1.1.valg","1.1.alg","1.1.prog","1.2.const","1.2.desc"],"p":[],"s":["s1.2.cvar"]}};
 	//var test_log3 = {"time":1594370876753,"page":"um_exam3","correct":{"f":["1.1.alg","1.2.bool"],"p":[],"s":["s1.2.cvar"]},"fail":{"f":["1.1.valg","1.1.alg","1.1.prog","1.2.const","1.2.desc"],"p":[],"s":["s1.2.cvar"]}};
-	
 	//var log_array = [test_log3,test_log2,test_log1];
 	
 	updateTableFromUserLog(sidMap,log_array);
@@ -132,15 +160,21 @@
 	   tag = json_table[i]["sid"];
 	   if (sidMap.has(tag)) {
 	      values = sidMap.get(tag);
-		  json_table[i]["ncor"] = values["correct"]
-		  json_table[i]["nfail"] = values["fail"]
-		  json_table[i]["cnt_ok"] = values["cnt_ok"]
+		  json_table[i]["correct_facts"] = values["correct_facts"]
+		  json_table[i]["fail_facts"] = values["fail_facts"]
+		  json_table[i]["cnt_ok_facts"] = values["cnt_ok_facts"]
+		  json_table[i]["correct_skills"] = values["correct_skills"]
+		  json_table[i]["fail_skills"] = values["fail_skills"]
+		  json_table[i]["cnt_ok_skills"] = values["cnt_ok_skills"]
 	   }
 	   else
 	   {
-	      json_table[i]["ncor"] = 0
-		  json_table[i]["nfail"] = 0
-		  json_table[i]["cnt_ok"] = 0
+	      json_table[i]["correct_facts"] = 0;
+		  json_table[i]["fail_facts"] = 0;
+		  json_table[i]["cnt_ok_facts"] = 0;
+		  json_table[i]["correct_skills"] = 0;
+		  json_table[i]["fail_skills"] = 0;
+		  json_table[i]["cnt_ok_skills"] = 0;
 	   }
 	}
 	
@@ -151,9 +185,12 @@
 			{title:"Тег", field:"sid", width:70},
 			{title:"Описание", field:"desc", hozAlign:"left"},
 			{title:"Связи", field:"childs", width:60},
-			{title:"Правильных", field:"ncor", width:60},
-			{title:"Неправильных", field:"nfail", width:60},
-			{title:"Счетчик успеха", field:"cnt_ok", formatter:"star", formatterParams:{stars:5}, hozAlign:"center", width:120},
+			{title:"+F", field:"correct_facts", width:60},
+			{title:"+S", field:"correct_skills", width:60},
+			{title:"-F", field:"fail_facts", width:60},
+			{title:"-S", field:"fail_skills", width:60},
+			{title:"F успех", field:"cnt_ok_facts", formatter:"star", formatterParams:{stars:5}, hozAlign:"center", width:120},
+			{title:"S успех", field:"cnt_ok_skills", formatter:"star", formatterParams:{stars:5}, hozAlign:"center", width:120},
 		],
 	});
 	
@@ -203,12 +240,17 @@
 		    tag = root_node["text"]["name"];
 			if (sid_map.has(tag)) {
 			   values = sid_map.get(tag);
-			   if (values["cnt_ok"] < 1) root_node["text"]["desc"] = "(+"+values["correct"]+"/-"+values["fail"]+")";
-			   else root_node["text"]["desc"] = values["cnt_ok"]+"★"+"(+"+values["correct"]+"/-"+values["fail"]+")";
+			   if (values["cnt_ok_facts"] < 1) root_node["text"]["desc"] = "(+"+values["correct_facts"]+"/-"+values["fail_facts"]+")\n";
+			   else root_node["text"]["desc"] = values["cnt_ok_facts"]+"★"+"(+"+values["correct_facts"]+"/-"+values["fail_facts"]+")\n";
+			   if (values["cnt_ok_skills"] < 1) root_node["text"]["desc"] += "(+"+values["correct_skills"]+"/-"+values["fail_skills"]+")";
+			   else root_node["text"]["desc"] += values["cnt_ok_facts"]+"★"+"(+"+values["correct_skills"]+"/-"+values["fail_skills"]+")";
 			   //покраска в зависимости от количества ответов и счетчика успеха
-			   if (values["cnt_ok"] >= 3) root_node["HTMLclass"] = "good";
-			   else if (values["cnt_ok"] < 3 && values["fail"] > 3) root_node["HTMLclass"] = "bad";
-			   else if (values["cnt_ok"] < 3 && values["fail"] > values["correct"]) root_node["HTMLclass"] = "warning";
+			   if (values["cnt_ok_facts"] >= 3) root_node["HTMLclass"] = "good";
+			   else if (values["cnt_ok_facts"] < 3 && values["fail_facts"] > 3) root_node["HTMLclass"] = "bad";
+			   else if (values["cnt_ok_facts"] < 3 && values["fail_facts"] > values["correct_facts"]) root_node["HTMLclass"] = "warning";
+			   else if (values["cnt_ok_skills"] >= 3) root_node["HTMLclass"] = "good";
+			   else if (values["cnt_ok_skills"] < 3 && values["fail_skills"] > 3) root_node["HTMLclass"] = "bad";
+			   else if (values["cnt_ok_skills"] < 3 && values["fail_skills"] > values["correct_facts"]) root_node["HTMLclass"] = "warning";
 			}
 			for (let i=0;i<root_node["children"].length;i++) {
 			   updateTreantNodeValues(root_node["children"][i], sid_map);
@@ -252,7 +294,6 @@
 		  
 		  fr.onload = function(e) { 
 			var result = JSON.parse(e.target.result);
-			//TODO: update local storage from array
 			console.log(result)
 			clearModelInStorage();
 			for (var i = 0; i < result.length; i++){
