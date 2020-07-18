@@ -165,6 +165,7 @@ $(function(){
         
         var failSema = new Array();
         var failSkill = new Array();
+        var testResArray = new Array();
 
         questions.each(function(i, el) {
             var self = $(this);
@@ -174,8 +175,10 @@ $(function(){
                 if (self.find('input[type="radio"][data-content="1"]:checked').length == 1) {
                     correct += 1;
                     ok = true;
+                    testResArray.push(1);
                 } else {
                     self.addClass('text-danger');
+                    testResArray.push(0);
                 }
                 
                 var linkItems = self.find('input[type="radio"][data-link!=""]');
@@ -194,9 +197,12 @@ $(function(){
                 if(String(textbox.val()).trim().toLowerCase()==correct_text.toLowerCase()) {
                     correct += 1;
                     ok = true;
+                    testResArray.push(1);
                 } else {                    
+                    testResArray.push(0);
                     self.addClass('text-danger');
-                    textbox.parent().find("i.text-correct").html(correct_text);
+                    //выводим правильный ответ
+                    //textbox.parent().find("i.text-correct").html(correct_text);
                 }
                 
                 var linkItems = self.find('input[type="text"][data-link!=""]');
@@ -224,7 +230,11 @@ $(function(){
                 } else if (qc > 0 && qc < 1) {
                     self.addClass('text-warning');
                     displayLinks = false;
+                    ok = false;
                 }
+                
+                if (ok) testResArray.push(1);
+                else testResArray.push(0);
                 
                 var linkItems = self.find('input[type="checkbox"][data-link!=""]');
                 linkItems.each(function(idx, li) {
@@ -251,9 +261,11 @@ $(function(){
                 if (res["ok"]) {
                    correct += 1;
                    ok = true;
+                    testResArray.push(1);
                 }
 				else {
 				   self.addClass('text-danger');
+                   testResArray.push(0);
 				}
                 
                 var linkItems = self.find('textarea[type="text"][data-link!=""]');
@@ -276,7 +288,8 @@ $(function(){
            fail: {
               facts : failSema,
               skills : failSkill
-           }
+           },
+           test_res: testResArray
         }
 
 		var diagTable;

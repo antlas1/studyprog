@@ -1,1 +1,1 @@
-python generator.py -i exams/exam.md -o ../site -w wrapper.html -e html
+python generator.py -i exams/block1.md -o ../site -w wrapper_no_acorn.html -e html
