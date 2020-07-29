@@ -12,20 +12,26 @@ plugins: []
   
 nav:
     - Главная: index.md
-    - Курс:
-        - Установка программного обеспечения: course/prep/install.md
+    - Курс Flowgoritm:
+        - Установка программного обеспечения: course_flow/prep/install.md
         - 1. Основы алгоритмизации и программирования:
-            - 1.1. Алгоритм и блок-схема: course/p1/t1.md
-            - 1.2. Переменные и константы: course/p1/t2.md
-            - 1.2. Основные операции с переменными: course/p1/t3.md
-    - Задачи:
-        - Тест: tasks/exam.md
+            - 1.1. Алгоритм и блок-схема: course_flow/p1/t1.md
+            - 1.2. Переменные и константы: course_flow/p1/t2.md
+            - 1.3. Основные операции с переменными: course_flow/p1/t3.md
+    - Курс Python:
+        - Установка программного обеспечения: course_py/install.md
+        - 1. Основы алгоритмизации и программирования:
+            - 1.1. Блок-схема и псевдокод: course_py/p1/t1.md
+            - 1.2. Целое число: course_py/p1/t2.md
+            - 1.3. Вещественное число: course_py/p1/t3.md
+            - 1.4. Строковый тип данных: course_py/p1/t4.md
+            - 1.5. Переменные, присваивание: course_py/p1/t5.md
+            - 1.6. Логический тип данных: course_py/p1/t6.md
     - Технические статьи:
         - Шпаргалка по Markdown: tech/cheatsheet.md
         - Выкладывание на Github pages: tech/deploy.md
         - Семантический конспект: tech/semantic.md
         - Процедурная модель: tech/procedural.md
-        - Модель умений: tech/skills.md
 
 markdown_extensions:
     - tables
@@ -50,5 +56,4 @@ extra_javascript:
   - mermaid/mermaid.min.js
   - katex/mkdocs_load.js
   - katex/katex.min.js
-  - tasks/acorn_interpreter.js
     
