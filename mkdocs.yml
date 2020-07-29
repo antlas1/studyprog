@@ -27,6 +27,11 @@ nav:
             - 1.4. Строковый тип данных: course_py/p1/t4.md
             - 1.5. Переменные, присваивание: course_py/p1/t5.md
             - 1.6. Логический тип данных: course_py/p1/t6.md
+            - 1.7. Знакомство с оператором ветвления if в Python: course_py/p1/t7.md
+            - 1.8. Блоки ветвления else-elif - более глубокое изучение if: course_py/p1/t8.md
+            - 1.9. Вложенные условные операторы: course_py/p1/t9.md
+            - 1.10. Цикл с параметром for: course_py/p1/t11.md
+            - 1.11. Цикл while: course_py/p1/t12.md
     - Технические статьи:
         - Шпаргалка по Markdown: tech/cheatsheet.md
         - Выкладывание на Github pages: tech/deploy.md
