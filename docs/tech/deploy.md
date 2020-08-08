@@ -5,6 +5,10 @@ studyprog/
     docs/
 alastochkinheroku.github.io/
 ```
+Перед выкладыванием каталог должен быть привязан к ssh:
+```
+git clone git@github.com:alastochkinheroku/alastochkinheroku.github.io.git
+```
 Проверить, то что страницы собираются в каталоге ```studyprog```:
 ```
 mkdocs build
