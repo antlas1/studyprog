@@ -132,7 +132,7 @@ def write_tasks_site_folder(res, task_root_dir):
 if __name__ == "__main__":
     print('Version: {}'.format(__version__))
     content = ''
-    with open('../../site/coding.md', encoding='utf8') as reader:
+    with open('../../docs/tech/coding_tasks.md', encoding='utf8') as reader:
         content = reader.read()
     content = content+'\n\n'
     res = parse_tasks_md(content)
