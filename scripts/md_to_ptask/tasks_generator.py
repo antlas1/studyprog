@@ -2,7 +2,7 @@ from enum import Enum
 import json
 import os
 
-__version__ = "0.0.1"
+__version__ = "0.0.2"
 
 class TaskStep(Enum):
     NONE = 0
@@ -22,15 +22,20 @@ def parse_tasks_md(content):
     tags = []
     allowed_types = ['int', 'float', 'string']
     tbl_splitter = True
+    content_ver = 'NONE'
     
-    for str in lines:
+    ver_str = lines[0]
+    if ver_str.lower().startswith('version:'):
+        content_ver = ver_str[8:].strip()
+    
+    for str in lines[1:]:
         str = str.strip()
         if step == TaskStep.NONE:
             #searching for id
             if str.startswith('#'):
                 id = str[1:]
                 assert id not in tasks.keys()
-                tasks[id] = {'desc': '', 'tags': [], 'vars': {}, 'test_col': [], 'tests': []}
+                tasks[id] = {'desc': '', 'tags': [], 'vars': {}, 'out_type': {}, 'test_col': [], 'tests': []}
                 task_text = []
                 vars = {}
                 tags = []
@@ -74,7 +79,10 @@ def parse_tasks_md(content):
                        assert var_type in allowed_types
                        var_name = type_name[1]
                        vars[var_name] = var_type
-               #elif str.lower().startswith('tags:'):
+               elif str.lower().startswith('output:'):
+                    var_str = str[7:].strip()
+                    tasks[id]['out_type'] = var_str.lower()
+               #elif str.lower().startswith('args:'):
                #    #parse tags
         elif step == TaskStep.TABLE:
             #parsing multiline table
@@ -96,11 +104,11 @@ def parse_tasks_md(content):
     #check that table is over
     assert step == TaskStep.NONE
     
-    return tasks
+    return (tasks,content_ver)
     
-def write_tasks_model_json(res, fname):
+def write_tasks_model_json(res, ver_str, fname):
     obj = {}
-    obj['version'] = __version__
+    obj['version'] = 'GEN: {}, CONTENT: {}'.format(__version__,ver_str)
     obj['tasks'] = res
     # Serializing json
     with open(fname,'w', encoding='utf8') as writer:
@@ -135,6 +143,6 @@ if __name__ == "__main__":
     with open('../../docs/tech/coding_tasks.md', encoding='utf8') as reader:
         content = reader.read()
     content = content+'\n\n'
-    res = parse_tasks_md(content)
-    write_tasks_model_json(res, '../../site/tasks.json')
+    res, ver_str = parse_tasks_md(content)
+    write_tasks_model_json(res,ver_str, '../../site/tasks.json')
     write_tasks_site_folder(res, '../../site/example_auto_site')

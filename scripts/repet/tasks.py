@@ -13,7 +13,7 @@ import imp
 import builtins
 from datetime import datetime
 
-__version__ = '0.1'
+__version__ = '0.2'
 
 def _fatal(msg):
     print(msg, file=sys.stderr)
@@ -85,6 +85,25 @@ def _argslist_from_spec(tspec, pos):
     if len(show_list) == 0:
        show_list.append('нет')
     return (out_list,','.join(show_list))
+    
+def _is_equal(expected,current,type):
+    if type == 'str':
+        return expected == current
+    elif type == 'int':
+        try:
+            exp_int = int(expected)
+            cur_int = int(current)
+        except ValueError:
+            return False
+        return exp_int == cur_int
+    elif type == 'float':
+        try:
+            exp_float_s = '{:.2f}'.format(float(expected))
+            cur_float_s = '{:.2f}'.format(float(current))
+        except ValueError:
+            return False
+        return exp_float_s == cur_float_s
+    _fatal('Неопределенный тип сравнения {}! Некорректная спецификация.'.format(type))
 
 def _create_diary_model(spec):
     m = {}
@@ -104,6 +123,22 @@ def _create_diary_model(spec):
     m["completed"] = []
     m["log"] = []
     return m
+    
+def _upgrade_diary_model(m,spec):
+    m["spec"] = spec["version"]
+    m["repet"] = __version__
+    m["total_tasks"] = len(spec["tasks"].keys())
+    m["section"] = {}
+    for tid in spec["tasks"].keys():
+        parts = tid.split('.')
+        if len(parts) != 3:
+            _fatal('Некорректный формат id для задания {}! Возможно, спецификация повреждена, обновите её или обратитесь к разработчику.'.format(tid))
+        section = '.'.join(parts[:-1])
+        if section not in m["section"]:
+            m["section"][section] = 1
+        else:
+            m["section"][section] = m["section"][section]+1
+    #TODO: проверить все ли выполненные задачи есть в спецификации...
     
 def _print_progress(m):
     count_sec={}
@@ -132,8 +167,8 @@ def _update_diary(dia, tid, isOk, spec):
         content = reader.read()
     m = json.loads(content)
     if m["spec"] != spec["version"]:
-        print('Версия спецификации изменилась, могут быть некорректные значения для статистики.')
-        m["total_tasks"] = len(spec["tasks"].keys())
+        print('Версия спецификации изменилась, попытка обновления.')
+        _upgrade_diary_model(m,spec)
     if tid in m["completed"]:
         print('Тестовое задание было ранее выполнено, результат в дневнике не отразился.')
         #_print_progress(m)
@@ -308,7 +343,7 @@ def test(c, task, spec=None, ws=None, dia=None):
         else:
            _fatal('Неверное количество аргументов для задания {}'.format(tid))
         res = _get_print_res()
-        if (res == etal):
+        if (_is_equal(etal,res,tspec["out_type"])):
             original_print('ok')
         else:
             builtins.print = original_print
