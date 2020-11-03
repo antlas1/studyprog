@@ -194,7 +194,18 @@ class pcity(CTask):
     def main2(self,cnt,s):
         print(cnt/s)
 
-
+#1.4
+class pruen(CTask):
+    def main0(self):
+        print('приветHELLO')
+        
+class pdoq(CTask):
+    def main0(self):
+        print('"ПРИВЕТ МИР"')
+        
+class poneq(CTask):
+    def main0(self):
+        print("'багет'")
 
 
 if __name__=='__main__':
@@ -228,6 +239,10 @@ if __name__=='__main__':
         {'name':'1.3.hypo','tc':phypo,'tt':[[1,2],[3.5,4,4],[0, 3.3]],'fl':True},
         {'name':'1.3.plot','tc':pplot,'tt':[[100.0,20.0],[34.0,17.0]],'fl':True},
         {'name':'1.3.city','tc':pcity,'tt':[[200.0,40.0],[68.0,34.0]],'fl':True},
+        
+        {'name':'1.4.ruen','tc':pruen,'tt':None,'fl':False},
+        {'name':'1.4.doq','tc':pdoq,'tt':None,'fl':False},
+        {'name':'1.4.oneq','tc':poneq,'tt':None,'fl':False},
     ]
     
     
