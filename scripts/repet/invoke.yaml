@@ -1,3 +1,3 @@
-spec: F:/Projects/Study/studyprog/site/tasks.json
-ws: F:/Projects/Study/studyprog/site/workspace
-diary: F:/Projects/Study/studyprog/site/marks.json
+spec: ../../site/tasks.json
+ws: workspace
+diary: marks.json
