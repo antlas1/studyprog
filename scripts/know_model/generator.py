@@ -142,13 +142,12 @@ class TableViewIterator(ModelIterator):
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description='User model generator v0.1')
-    parser.add_argument("-f","--facts", help="Semantic facts file", default="../docs/tech/semantic.md")
-    parser.add_argument("-p","--procedures", help="Procedure model file", default="../docs/tech/procedural.md")
-    parser.add_argument("-s","--skills", help="Skill model file", default="../docs/tech/skills.md")
-    parser.add_argument("-o","--out", help="Output directory", default=".")
+    parser.add_argument("-f","--facts", help="Semantic facts file", default="../../docs/tech/semantic.md")
+    parser.add_argument("-p","--procedures", help="Procedure model file", default="../../docs/tech/procedural.md")
+    parser.add_argument("-o","--out", help="Output directory", default="../../site/know_model")
     parser.add_argument("-e","--ext", help="Extension for output file", default="html")
     parser.add_argument("-w","--wrapper", help="Wrapper for tasks", default="wrapper.html")
-    parser.add_argument("-j","--json", help="Dump model to json", default="../site/model.json")
+    parser.add_argument("-j","--json", help="Dump model to json", default="../../site/model.json")
     
     args = parser.parse_args()
     
@@ -179,7 +178,11 @@ if __name__ == "__main__":
     table_it.iterate(conn_fact_model,"root")
     #print(table_it.json_repr())
     
-    render_model(table_it.json_repr(),treant_it.json_repr(),'../site/model.html','wrapper.html')
+    if not os.path.exists(args.out):
+        print('Try to creaty output directory {}'.format(args.out))
+        os.makedirs(args.out)
+    dest_file = os.path.join(args.out,"know.html");
+    render_model(table_it.json_repr(),treant_it.json_repr(),dest_file,'wrapper.html')
     
     #print(treant_it.json_repr())
     print('Disconnected facts: '+','.join(disconn_facts))
