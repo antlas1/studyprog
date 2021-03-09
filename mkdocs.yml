@@ -66,6 +66,7 @@ nav:
             - 2.5. Алгоритмы на строках: tasks/p2/t5.md
             - 2.6. Кортежи: tasks/p2/t6.md
             - 2.7. Множества: tasks/p2/t7.md
+            - 2.7. Словари: tasks/p2/t8.md
     - Технические статьи:
         - Шпаргалка по Markdown: tech/cheatsheet.md
         - Выкладывание на Github pages: tech/deploy.md
